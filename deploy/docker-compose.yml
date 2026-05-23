@@ -1,0 +1,40 @@
+services:
+  cb-monitor:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    expose:
+      - "8000"
+    env_file:
+      - ../.env
+    environment:
+      - PORT=8000
+      - DATABASE_URL=sqlite+aiosqlite:////app/backend/data/cb_monitor.db
+      - SECRET_KEY=${SECRET_KEY:-cb-monitor-prod-secret-key}
+      - DEBUG=false
+    volumes:
+      - cb_data:/app/backend/data
+    restart: unless-stopped
+    networks:
+      - internal
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    networks:
+      - internal
+
+networks:
+  internal:
+
+volumes:
+  cb_data:
+  caddy_data:
+  caddy_config:

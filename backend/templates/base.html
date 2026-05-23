@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" class="{{ theme }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ t("app.name") }}{% endblock %} — CB Monitor</title>
+    <meta name="description" content="{% block meta_desc %}{{ t("app.tagline") }}{% endblock %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+                        bloomberg: { bg: '#0a0a0a', card: '#151515', border: '#252525' },
+                    },
+                    fontFamily: {
+                        mono: ['SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Bloomberg Terminal inspired dark theme */
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .dark body { background-color: #0a0a0a; color: #d1d5db; }
+        .dark .bg-panel { background-color: #111111; }
+        .dark .bg-card { background-color: #1a1a1a; }
+        .dark .border-panel { border-color: #2a2a2a; }
+        .dark .text-bbg { color: #e5e7eb; }
+        .dark .text-bbg-muted { color: #6b7280; }
+        .dark .text-bbg-green { color: #4ade80; }
+        .dark .text-bbg-red { color: #f87171; }
+        .dark .text-bbg-amber { color: #fbbf24; }
+        /* Smooth transitions */
+        html { transition: background-color 0.15s ease; }
+        html, body { transition: background-color 0.15s ease, color 0.15s ease; }
+        *, *::before, *::after { transition: background-color 0.15s ease, border-color 0.15s ease; }
+    </style>
+</head>
+<body class="bg-white text-gray-900 dark:bg-[#0a0a0a] dark:text-gray-300 min-h-screen flex flex-col transition-colors duration-150">
+    <!-- Nav -->
+    <nav class="bg-white/90 backdrop-blur-sm border-b border-gray-200 dark:bg-[#111]/95 dark:border-[#2a2a2a] sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14">
+                <a href="/" class="text-lg font-bold text-brand-600 dark:text-emerald-400 tracking-tight">CB Monitor</a>
+                <div class="flex items-center gap-3 text-sm">
+                    <a href="/" class="hover:text-brand-600 dark:hover:text-emerald-400 transition px-1.5 py-1 {{ 'text-brand-600 dark:text-emerald-400 font-medium' if request.url.path == '/' else 'text-gray-600 dark:text-gray-400' }}">{{ t("nav.home") }}</a>
+                    <a href="/calendar" class="hover:text-brand-600 dark:hover:text-emerald-400 transition px-1.5 py-1 {{ 'text-brand-600 dark:text-emerald-400 font-medium' if request.url.path == '/calendar' else 'text-gray-600 dark:text-gray-400' }}">{{ t("nav.calendar") }}</a>
+                    <a href="/ranking" class="hover:text-brand-600 dark:hover:text-emerald-400 transition px-1.5 py-1 {{ 'text-brand-600 dark:text-emerald-400 font-medium' if request.url.path == '/ranking' else 'text-gray-600 dark:text-gray-400' }}">{{ t("nav.ranking") }}</a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <!-- Theme toggle -->
+                    <form action="/api/set-theme" method="post" class="inline">
+                        <input type="hidden" name="theme" value="{{ toggle_theme }}">
+                        <input type="hidden" name="redirect" value="{{ request.url.path }}">
+                        <button type="submit" class="text-xs border border-gray-300 dark:border-[#3a3a3a] rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-[#222] transition" title="{{ t("nav.theme") }}">
+                            {% if theme == "dark" %}☀{% else %}🌙{% endif %}
+                        </button>
+                    </form>
+                    <!-- Language toggle -->
+                    <form action="/api/set-lang" method="post" class="inline">
+                        <input type="hidden" name="lang" value="{% if lang == 'en' %}zh{% else %}en{% endif %}">
+                        <input type="hidden" name="redirect" value="{{ request.url.path }}">
+                        <button type="submit" class="text-xs border border-gray-300 dark:border-[#3a3a3a] rounded px-2 py-1 hover:bg-gray-100 dark:hover:bg-[#222] transition">
+                            {{ t("lang." + ("zh" if lang == "en" else "en")) }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 dark:bg-[#111] dark:border-[#2a2a2a] py-4 text-center text-xs text-gray-500 dark:text-gray-500">
+        <p class="mb-1">{{ t("footer.disclaimer") }}</p>
+        <p>{{ t("footer.source") }}</p>
+    </footer>
+</body>
+</html>

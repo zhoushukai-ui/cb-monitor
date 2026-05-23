@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}{{ bond.bond_name or bond.bond_code }}{% endblock %}
+
+{% block content %}
+{% if bond %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-[#151515] dark:border-[#2a2a2a] p-6">
+        <div class="flex items-baseline gap-3 mb-1">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ display_name(bond.bond_name, bond.bond_code) }}</h1>
+            {% if show_name %}<span class="font-mono text-gray-500 dark:text-gray-500 text-sm">{{ bond.bond_code }}</span>{% endif %}
+        </div>
+        <p class="text-gray-500 dark:text-gray-500 text-sm">
+            {{ bond.stock_name or '—' }}
+            <span class="font-mono">({{ bond.stock_code or '—' }})</span>
+        </p>
+        {% if bond.snapshot_date %}
+        <p class="text-xs text-gray-400 dark:text-gray-600 mt-3">{{ t("bond.updated") }}: {{ bond.snapshot_date }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Key metrics grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {% set metrics = [
+            ('price', bond.price, '¥', 'text-gray-900 dark:text-gray-200'),
+            ('premium_rate', bond.premium_rate, '%', 'text-red-600 dark:text-red-400' if bond.premium_rate and bond.premium_rate > 50 else 'text-green-600 dark:text-emerald-400' if bond.premium_rate and bond.premium_rate < 0 else 'text-gray-900 dark:text-gray-200'),
+            ('ytm', bond.ytm_ratio, '%', 'text-green-600 dark:text-emerald-400' if bond.ytm_ratio and bond.ytm_ratio > 0 else 'text-gray-900 dark:text-gray-200'),
+            ('conversion_value', bond.conversion_value, '', 'text-gray-900 dark:text-gray-200'),
+            ('remaining_size', bond.remaining_size, '', 'text-gray-900 dark:text-gray-200'),
+            ('total_size', bond.total_size, '', 'text-gray-900 dark:text-gray-200'),
+            ('rating', bond.rating, '', 'text-gray-900 dark:text-gray-200'),
+            ('stock_price', bond.stock_price, '', 'text-gray-900 dark:text-gray-200'),
+            ('conversion_price', bond.conversion_price, '', 'text-gray-900 dark:text-gray-200'),
+            ('redemption_threshold', bond.redemption_threshold_price, '', 'text-gray-900 dark:text-gray-200'),
+            ('redemption_days', bond.redemption_days_count, ' ' + t("common.days"), 'text-amber-600 dark:text-amber-400' if bond.redemption_days_count and bond.redemption_days_count >= 10 else 'text-gray-900 dark:text-gray-200'),
+        ] %}
+        {% for key, val, suffix, color_class in metrics %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-[#151515] dark:border-[#2a2a2a] p-4">
+            <p class="text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">{{ t("bond." + key) }}</p>
+            <p class="text-xl font-bold font-mono {{ color_class }}">
+                {% if val is not none %}{{ val }}{{ suffix }}{% else %}—{% endif %}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Stock fundamentals -->
+    {% if stock_info %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-[#151515] dark:border-[#2a2a2a] p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t("stock.fundamentals") }}</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {% set sf_metrics = [
+                ('industry', stock_info.industry, ''),
+                ('pe_ttm', stock_info.pe_ttm, ''),
+                ('pb', stock_info.pb, ''),
+                ('market_cap', stock_info.market_cap, ''),
+            ] %}
+            {% for key, val, suffix in sf_metrics %}
+            <div class="p-3 bg-gray-50 dark:bg-[#0f0f0f] rounded-lg">
+                <p class="text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">{{ t("stock." + key) }}</p>
+                <p class="text-lg font-semibold font-mono text-gray-900 dark:text-gray-200">
+                    {% if val is not none %}{{ val }}{{ suffix }}{% else %}—{% endif %}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- External links -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-[#151515] dark:border-[#2a2a2a] p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t("bond.links") }}</h2>
+        <div class="flex flex-wrap gap-3">
+            <a href="https://quote.eastmoney.com/conbond/{{ bond.bond_code }}.html" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 dark:border-[#3a3a3a] rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-[#222] dark:text-gray-300 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                {{ t("bond.link_eastmoney") }}
+            </a>
+            <a href="https://www.jisilu.cn/data/cb/detail/{{ bond.bond_code }}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 dark:border-[#3a3a3a] rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-[#222] dark:text-gray-300 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                {{ t("bond.link_jisilu") }}
+            </a>
+            {% if bond.stock_code %}
+            <a href="https://quote.eastmoney.com/{{ stock_prefix(bond.stock_code) }}{{ bond.stock_code }}.html" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 dark:border-[#3a3a3a] rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-[#222] dark:text-gray-300 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                {{ t("bond.link_stock") }}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Redemption event -->
+    {% if event %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-[#151515] dark:border-[#2a2a2a] p-6">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ t("event.type") }}: {{ t("event.type_" + event.event_type) if event.event_type in ('redemption','put','maturity') else event.event_type }}</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">{{ t("event.status") }}</p>
+                <p class="font-semibold text-gray-900 dark:text-gray-200">{{ t("event.status_" + event.status) if event.status in ('announced','ongoing','completed') else event.status }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">{{ t("event.last_trade_date") }}</p>
+                <p class="font-mono text-gray-900 dark:text-gray-200">{{ event.last_trade_date or '—' }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">{{ t("event.redemption_price") }}</p>
+                <p class="font-mono text-gray-900 dark:text-gray-200">{{ event.redemption_price if event.redemption_price else '—' }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider mb-1">{{ t("event.countdown") }}</p>
+                {% set d = days_left(event.last_trade_date) %}
+                <p class="font-mono font-bold {% if d is not none and d <= 3 %}text-red-600 dark:text-red-400{% elif d is not none and d <= 10 %}text-amber-600 dark:text-amber-400{% else %}text-gray-900 dark:text-gray-200{% endif %}">
+                    {% if d is not none and d >= 0 %}{{ d }} {{ t("common.days") }}{% else %}—{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-[#151515] dark:border-[#2a2a2a] p-12 text-center text-gray-500 dark:text-gray-500">
+    <p class="text-lg mb-2">Bond not found</p>
+    <a href="/" class="text-brand-600 dark:text-emerald-400 hover:underline">{{ t("nav.home") }}</a>
+</div>
+{% endif %}
+{% endblock %}

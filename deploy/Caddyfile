@@ -1,0 +1,3 @@
+cb-monitor.duckdns.org {
+    reverse_proxy cb-monitor:8000
+}
