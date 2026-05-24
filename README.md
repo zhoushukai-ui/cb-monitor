@@ -27,7 +27,7 @@ Built with [Akshare](https://github.com/akfamily/akshare) (wraps Jisilu, East Mo
 ### Tech Stack
 | Layer | Technology |
 |-------|-----------|
-| Backend | Python FastAPI + APScheduler |
+| Backend | Python FastAPI |
 | Database | SQLite (dev) / PostgreSQL (prod) via SQLAlchemy |
 | Frontend | Jinja2 templates + Tailwind CSS (CDN) |
 | i18n | Cookie > Accept-Language > IP geo (ip-api.com) |
@@ -103,22 +103,3 @@ cb-monitor/
 └── README.md
 ```
 
-## Roadmap
-
-### Phase 1 — Core Infrastructure (MVP delivered ✓)
-- [x] Redemption calendar + countdown
-- [x] Market ranking with sorting
-- [x] Multi-language (EN/ZH)
-- [x] Bloomberg dark theme
-
-### Phase 2 — Scheduled Collection & Alerts (current)
-- [ ] **Scheduled data collection** — APScheduler for 4× daily market refresh
-- [ ] **Watchlist + email alerts** — Users pin bonds, get notified on redemption triggers
-- [ ] **Premium rate alerts** — Notify when premium rate drops below 0% (arbitrage opportunity)
-- [ ] **Ranking filters** — Filter by rating, premium rate range, remaining size
-
-### Phase 3 — Value-Add (future)
-- [ ] Daily email digest — morning summary of today's last-trade dates
-- [ ] User accounts (email-based, no signup friction)
-- [ ] Historical price / premium-rate charts
-- [ ] Mobile-responsive optimization
