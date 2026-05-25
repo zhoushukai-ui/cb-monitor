@@ -3,14 +3,13 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     env_file:
       - ../.env
     environment:
       - PORT=8000
       - DATABASE_URL=sqlite+aiosqlite:////app/backend/data/cb_monitor.db
-      - SECRET_KEY=${SECRET_KEY:-cb-monitor-prod-secret-key}
       - DEBUG=false
     volumes:
       - cb_data:/app/backend/data

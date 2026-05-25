@@ -12,11 +12,12 @@ Usage:
 import logging
 from contextlib import asynccontextmanager
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from config import BACKEND_DIR, DEBUG
+from config import BACKEND_DIR, COLLECTION_INTERVAL_HOURS, DEBUG
 from database import init_db
 from routers import pages, api, admin
 
@@ -26,6 +27,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger("cb-monitor")
 
+_scheduler: AsyncIOScheduler | None = None
+
+
+async def _scheduled_collect():
+    """Periodic data collection wrapper called by APScheduler."""
+    from services.collector import collect_all
+    from database import AsyncSessionLocal
+
+    try:
+        async with AsyncSessionLocal() as session:
+            result = await collect_all(session)
+            logger.info("Scheduled data collection completed: %s", result)
+    except Exception as exc:
+        logger.error("Scheduled data collection failed: %s", exc, exc_info=True)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,7 +49,28 @@ async def lifespan(app: FastAPI):
     logger.info("Starting CB Monitor…")
     await init_db()
     logger.info("Database ready.")
+
+    # Start scheduled data collection
+    global _scheduler
+    _scheduler = AsyncIOScheduler()
+    _scheduler.add_job(
+        _scheduled_collect,
+        trigger="interval",
+        hours=COLLECTION_INTERVAL_HOURS,
+        id="data_collection",
+        replace_existing=True,
+    )
+    _scheduler.start()
+    logger.info(
+        "Data collection scheduler started (every %d hours)",
+        COLLECTION_INTERVAL_HOURS,
+    )
+
     yield
+
+    if _scheduler:
+        _scheduler.shutdown(wait=False)
+        logger.info("Scheduler shut down.")
     logger.info("Shutdown complete.")
 
 

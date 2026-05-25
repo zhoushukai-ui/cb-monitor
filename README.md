@@ -65,7 +65,7 @@ open http://localhost:8000
 
 ## Deployment (AWS EC2)
 
-1. Launch `t4g.nano` (free-tier eligible) with Ubuntu 24.04.
+1. Launch `t3.micro` (free-tier eligible) with Ubuntu 24.04.
 2. Install Docker:
    ```bash
    sudo apt update && sudo apt install docker.io docker-compose-v2 -y
